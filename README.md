@@ -1,6 +1,6 @@
 --[[
-    Painel Rayfield: Noob Hack (Corrigido)
-    Abas: Poderes (Pegar Rápido, InfJump, Alerta Brainrot) | Desync | Configurações
+    Painel Rayfield: Noob Hack
+    Abas: Principal (Pegar Rápido, InfJump, Anti‑Ragdoll, Alerta Brainrot) | Desync | Configurações
 --]]
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -30,12 +30,12 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
-local TabPoderes = Window:CreateTab("Poderes", 4483362458)
+local TabPrincipal = Window:CreateTab("Principal", 4483362458)  -- Nome alterado aqui
 local TabDesync = Window:CreateTab("Desync", 4483362458)
 local TabConfig = Window:CreateTab("Configurações", 4483362458)
 
--- ====================== ABA PODERES ======================
-TabPoderes:CreateSection("Coleta Otimizada")
+-- ====================== ABA PRINCIPAL ======================
+TabPrincipal:CreateSection("Coleta Otimizada")
 
 -- Pegar Rápido (Estilo Noob Prime)
 local pegarRapidoEnabled = false
@@ -61,7 +61,7 @@ local function disablePegarRapido()
     pegarRapidoEnabled = false
 end
 
-TabPoderes:CreateToggle({
+TabPrincipal:CreateToggle({
     Name = "Pegar Rápido (Alcance + Instantâneo)",
     CurrentValue = false,
     Flag = "PegarRapidoToggle",
@@ -74,9 +74,9 @@ TabPoderes:CreateToggle({
     end,
 })
 
-TabPoderes:CreateLabel("Aumenta o alcance de coleta e remove a barra de progresso.\nAtualiza a cada 2s (lag free).", Color3.fromRGB(200, 200, 200))
+TabPrincipal:CreateLabel("Aumenta o alcance de coleta e remove a barra de progresso.\nAtualiza a cada 2s (lag free).", Color3.fromRGB(200, 200, 200))
 
-TabPoderes:CreateSection("Movimento")
+TabPrincipal:CreateSection("Movimento")
 
 -- InfJump (Bloco Instantâneo)
 local infJumpEnabled = false
@@ -121,7 +121,7 @@ local function disableInfJump()
     end
 end
 
-TabPoderes:CreateToggle({
+TabPrincipal:CreateToggle({
     Name = "InfJump (Bloco Instantâneo)",
     CurrentValue = false,
     Flag = "InfJumpToggle",
@@ -134,7 +134,209 @@ TabPoderes:CreateToggle({
     end,
 })
 
-TabPoderes:CreateLabel("Ao pular, um bloco invisível aparece por um instante,\nte impulsionando para cima.", Color3.fromRGB(200, 200, 200))
+TabPrincipal:CreateLabel("Ao pular, um bloco invisível aparece por um instante,\nte impulsionando para cima.", Color3.fromRGB(200, 200, 200))
+
+-- Anti-Ragdoll (ANDAR SEM CAIR)
+local antiRagdollEnabled = false
+local antiRagdollConn = nil
+
+local function enableAntiRagdoll()
+    antiRagdollEnabled = true
+    local player = game.Players.LocalPlayer
+    antiRagdollConn = game:GetService("RunService").Heartbeat:Connect(function()
+        if not antiRagdollEnabled then return end
+        local char = player.Character
+        if not char or not char:FindFirstChild("Humanoid") then return end
+        local hum = char.Humanoid
+        local state = hum:GetState()
+        if state == Enum.HumanoidStateType.Physics or state == Enum.HumanoidStateType.FallingDown then
+            hum:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+        end
+    end)
+end
+
+local function disableAntiRagdoll()
+    antiRagdollEnabled = false
+    if antiRagdollConn then
+        antiRagdollConn:Disconnect()
+        antiRagdollConn = nil
+    end
+end
+
+TabPrincipal:CreateToggle({
+    Name = "Anti‑Ragdoll (Andar sem cair)",
+    CurrentValue = false,
+    Flag = "AntiRagdollToggle",
+    Callback = function(Value)
+        if Value then
+            enableAntiRagdoll()
+        else
+            disableAntiRagdoll()
+        end
+    end,
+})
+
+TabPrincipal:CreateLabel("Impede que você seja derrubado ou entre em ragdoll.\nMantém o personagem sempre de pé.", Color3.fromRGB(200, 200, 200))
+
+-- Alerta Brainrot (Detector de Pets Raros)
+TabPrincipal:CreateSection("Alertas de Itens Raros")
+
+local brainrotAlertEnabled = false
+local brainrotConnections = {}
+local brainrotCharConnections = {}
+
+local function showBrainrotAlert(playerName, itemName, moneyAmount)
+    local player = game.Players.LocalPlayer
+    local gui = Instance.new("ScreenGui")
+    gui.Parent = player.PlayerGui
+    gui.Name = "BrainrotAlert"
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 350, 0, 120)
+    frame.Position = UDim2.new(0.5, -175, 0, 10)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    frame.BorderSizePixel = 0
+    frame.BackgroundTransparency = 0.3
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+    frame.Parent = gui
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Position = UDim2.new(0, 0, 0, 5)
+    title.Text = "🔥 BRAINROT ENCONTRADO! 🔥"
+    title.TextColor3 = Color3.fromRGB(255, 215, 0)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 18
+    title.BackgroundTransparency = 1
+    title.Parent = frame
+
+    local ownerLabel = Instance.new("TextLabel")
+    ownerLabel.Size = UDim2.new(1, 0, 0, 25)
+    ownerLabel.Position = UDim2.new(0, 0, 0, 35)
+    ownerLabel.Text = "Jogador: " .. playerName
+    ownerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ownerLabel.Font = Enum.Font.Gotham
+    ownerLabel.TextSize = 14
+    ownerLabel.BackgroundTransparency = 1
+    ownerLabel.Parent = frame
+
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 0, 25)
+    nameLabel.Position = UDim2.new(0, 0, 0, 60)
+    nameLabel.Text = "Nome: " .. itemName
+    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.Font = Enum.Font.Gotham
+    nameLabel.TextSize = 14
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Parent = frame
+
+    local moneyLabel = Instance.new("TextLabel")
+    moneyLabel.Size = UDim2.new(1, 0, 0, 25)
+    moneyLabel.Position = UDim2.new(0, 0, 0, 85)
+    moneyLabel.Text = "💰 Dinheiro: " .. tostring(moneyAmount)
+    moneyLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+    moneyLabel.Font = Enum.Font.Gotham
+    moneyLabel.TextSize = 14
+    moneyLabel.BackgroundTransparency = 1
+    moneyLabel.Parent = frame
+
+    task.delay(6, function()
+        gui:Destroy()
+    end)
+end
+
+local function scanCharacterForBrainrot(char, playerName)
+    if not char then return end
+    for _, obj in ipairs(char:GetDescendants()) do
+        if obj:IsA("Model") or obj:IsA("Part") then
+            local name = obj.Name
+            if string.find(string.lower(name), "brainrot") then
+                local money = 0
+                local valueObj = obj:FindFirstChild("Value") or obj:FindFirstChild("Cash") or obj:FindFirstChild("Money")
+                if valueObj and valueObj:IsA("NumberValue") then
+                    money = valueObj.Value
+                elseif valueObj and valueObj:IsA("StringValue") then
+                    money = valueObj.Value
+                end
+                if money == 0 then
+                    pcall(function()
+                        money = obj:GetAttribute("Value") or obj:GetAttribute("Cash") or obj:GetAttribute("Money") or 0
+                    end)
+                end
+                showBrainrotAlert(playerName, name, money)
+                break
+            end
+        end
+    end
+end
+
+local function startBrainrotMonitoring()
+    local Players = game.Players
+    local LocalPlayer = Players.LocalPlayer
+
+    local playerAddedConn = Players.PlayerAdded:Connect(function(player)
+        if not brainrotAlertEnabled or player == LocalPlayer then return end
+
+        local charAddedConn
+        charAddedConn = player.CharacterAdded:Connect(function(char)
+            if not brainrotAlertEnabled then
+                charAddedConn:Disconnect()
+                return
+            end
+            task.wait(0.5)
+            scanCharacterForBrainrot(char, player.Name)
+        end)
+        brainrotCharConnections[player] = charAddedConn
+
+        if player.Character then
+            task.wait(0.5)
+            scanCharacterForBrainrot(player.Character, player.Name)
+        end
+    end)
+
+    table.insert(brainrotConnections, playerAddedConn)
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            task.spawn(function()
+                task.wait(0.5)
+                scanCharacterForBrainrot(player.Character, player.Name)
+            end)
+        end
+    end
+end
+
+local function enableBrainrotAlert()
+    brainrotAlertEnabled = true
+    startBrainrotMonitoring()
+end
+
+local function disableBrainrotAlert()
+    brainrotAlertEnabled = false
+    for _, conn in ipairs(brainrotConnections) do
+        conn:Disconnect()
+    end
+    brainrotConnections = {}
+    for player, conn in pairs(brainrotCharConnections) do
+        conn:Disconnect()
+    end
+    brainrotCharConnections = {}
+end
+
+TabPrincipal:CreateToggle({
+    Name = "Aviso de Brainrot",
+    CurrentValue = false,
+    Flag = "BrainrotAlertToggle",
+    Callback = function(Value)
+        if Value then
+            enableBrainrotAlert()
+        else
+            disableBrainrotAlert()
+        end
+    end,
+})
+
+TabPrincipal:CreateLabel("Detecta quando um jogador possui um pet com 'Brainrot' no nome\ne mostra o nome, dono e valor em dinheiro.", Color3.fromRGB(200, 200, 200))
 
 -- ====================== ABA DESYNC ======================
 TabDesync:CreateSection("Sincronização de Rede")
@@ -304,6 +506,7 @@ TabConfig:CreateButton({
     Callback = function()
         if pegarRapidoEnabled then disablePegarRapido() end
         if infJumpEnabled then disableInfJump() end
+        if antiRagdollEnabled then disableAntiRagdoll() end
         if brainrotAlertEnabled then disableBrainrotAlert() end
         if desyncEnabled then disableDesync() end
         if autoExecuteEnabled then disableAutoExecute() end
@@ -311,181 +514,7 @@ TabConfig:CreateButton({
     end,
 })
 
--- ====================== NOVA FUNÇÃO: ALERTA DE BRAINROT (CORRIGIDA) ======================
--- As definições originais da aba Poderes foram preservadas até aqui e agora adicionamos a seção do alerta após as outras.
-
--- Voltamos a definir a tabela de conexões (já está declarada antes, mas garantimos)
-if not brainrotConnections then
-    brainrotConnections = {}
-end
-if not brainrotCharConnections then
-    brainrotCharConnections = {}  -- armazena conexões de CharacterAdded por jogador
-end
-
-local function showBrainrotAlert(playerName, itemName, moneyAmount)
-    local player = game.Players.LocalPlayer
-    local gui = Instance.new("ScreenGui")
-    gui.Parent = player.PlayerGui
-    gui.Name = "BrainrotAlert"
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 350, 0, 120)
-    frame.Position = UDim2.new(0.5, -175, 0, 10)
-    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    frame.BorderSizePixel = 0
-    frame.BackgroundTransparency = 0.3
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-    frame.Parent = gui
-
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.Position = UDim2.new(0, 0, 0, 5)
-    title.Text = "🔥 BRAINROT ENCONTRADO! 🔥"
-    title.TextColor3 = Color3.fromRGB(255, 215, 0)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 18
-    title.BackgroundTransparency = 1
-    title.Parent = frame
-
-    local ownerLabel = Instance.new("TextLabel")
-    ownerLabel.Size = UDim2.new(1, 0, 0, 25)
-    ownerLabel.Position = UDim2.new(0, 0, 0, 35)
-    ownerLabel.Text = "Jogador: " .. playerName
-    ownerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ownerLabel.Font = Enum.Font.Gotham
-    ownerLabel.TextSize = 14
-    ownerLabel.BackgroundTransparency = 1
-    ownerLabel.Parent = frame
-
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(1, 0, 0, 25)
-    nameLabel.Position = UDim2.new(0, 0, 0, 60)
-    nameLabel.Text = "Nome: " .. itemName
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    nameLabel.Font = Enum.Font.Gotham
-    nameLabel.TextSize = 14
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.Parent = frame
-
-    local moneyLabel = Instance.new("TextLabel")
-    moneyLabel.Size = UDim2.new(1, 0, 0, 25)
-    moneyLabel.Position = UDim2.new(0, 0, 0, 85)
-    moneyLabel.Text = "💰 Dinheiro: " .. tostring(moneyAmount)
-    moneyLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
-    moneyLabel.Font = Enum.Font.Gotham
-    moneyLabel.TextSize = 14
-    moneyLabel.BackgroundTransparency = 1
-    moneyLabel.Parent = frame
-
-    task.delay(6, function()
-        gui:Destroy()
-    end)
-end
-
-local function scanCharacterForBrainrot(char, playerName)
-    if not char then return end
-    for _, obj in ipairs(char:GetDescendants()) do
-        if obj:IsA("Model") or obj:IsA("Part") then
-            local name = obj.Name
-            if string.find(string.lower(name), "brainrot") then
-                local money = 0
-                local valueObj = obj:FindFirstChild("Value") or obj:FindFirstChild("Cash") or obj:FindFirstChild("Money")
-                if valueObj and valueObj:IsA("NumberValue") then
-                    money = valueObj.Value
-                elseif valueObj and valueObj:IsA("StringValue") then
-                    money = valueObj.Value
-                end
-                if money == 0 then
-                    pcall(function()
-                        money = obj:GetAttribute("Value") or obj:GetAttribute("Cash") or obj:GetAttribute("Money") or 0
-                    end)
-                end
-                showBrainrotAlert(playerName, name, money)
-                break
-            end
-        end
-    end
-end
-
-local function startBrainrotMonitoring()
-    local Players = game.Players
-    local LocalPlayer = Players.LocalPlayer
-
-    -- Monitora novos jogadores (exclui o jogador local)
-    local playerAddedConn = Players.PlayerAdded:Connect(function(player)
-        if not brainrotAlertEnabled or player == LocalPlayer then return end
-
-        -- Aguarda personagem e escaneia
-        local charAddedConn
-        charAddedConn = player.CharacterAdded:Connect(function(char)
-            if not brainrotAlertEnabled then
-                charAddedConn:Disconnect()
-                return
-            end
-            task.wait(0.5)
-            scanCharacterForBrainrot(char, player.Name)
-        end)
-        -- Armazena a conexão para limpeza posterior
-        brainrotCharConnections[player] = charAddedConn
-
-        -- Se já tem personagem, escaneia agora
-        if player.Character then
-            task.wait(0.5)
-            scanCharacterForBrainrot(player.Character, player.Name)
-        end
-    end)
-
-    table.insert(brainrotConnections, playerAddedConn)
-
-    -- Verifica jogadores já presentes (exceto local)
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            task.spawn(function()
-                task.wait(0.5)
-                scanCharacterForBrainrot(player.Character, player.Name)
-            end)
-        end
-    end
-end
-
-local function enableBrainrotAlert()
-    brainrotAlertEnabled = true
-    startBrainrotMonitoring()
-end
-
-local function disableBrainrotAlert()
-    brainrotAlertEnabled = false
-    -- Desconecta todas as conexões de PlayerAdded
-    for _, conn in ipairs(brainrotConnections) do
-        conn:Disconnect()
-    end
-    brainrotConnections = {}
-    -- Desconecta todas as conexões de CharacterAdded armazenadas
-    for player, conn in pairs(brainrotCharConnections) do
-        conn:Disconnect()
-    end
-    brainrotCharConnections = {}
-end
-
--- Agora adicionamos a seção na aba Poderes (ela precisa aparecer após InfJump)
-TabPoderes:CreateSection("Alertas de Itens Raros")
-
-TabPoderes:CreateToggle({
-    Name = "Aviso de Brainrot",
-    CurrentValue = false,
-    Flag = "BrainrotAlertToggle",
-    Callback = function(Value)
-        if Value then
-            enableBrainrotAlert()
-        else
-            disableBrainrotAlert()
-        end
-    end,
-})
-
-TabPoderes:CreateLabel("Detecta quando um jogador possui um pet com 'Brainrot' no nome\ne mostra o nome, dono e valor em dinheiro.", Color3.fromRGB(200, 200, 200))
-
--- Carregar configurações salvas (com todas as funções presentes)
+-- Carregar configurações salvas
 Rayfield:LoadConfiguration()
 task.spawn(function()
     task.wait(1)
@@ -494,6 +523,9 @@ task.spawn(function()
     end
     if Rayfield.Flags["InfJumpToggle"] then
         enableInfJump()
+    end
+    if Rayfield.Flags["AntiRagdollToggle"] then
+        enableAntiRagdoll()
     end
     if Rayfield.Flags["BrainrotAlertToggle"] then
         enableBrainrotAlert()
