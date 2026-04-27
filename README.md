@@ -1,6 +1,6 @@
 --[[
     Painel Rayfield: Noob Hack
-    Abas: Principal (Pegar Rápido, InfJump, Anti‑Ragdoll, Alerta Brainrot) | Desync | Configurações
+    Abas: Principal (Pegar Rápido, InfJump, Anti‑Ragdoll, Alerta Brainrot) | Desync (com Teste 16 Speed) | Configurações
 --]]
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -30,7 +30,7 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
-local TabPrincipal = Window:CreateTab("Principal", 4483362458)  -- Nome alterado aqui
+local TabPrincipal = Window:CreateTab("Principal", 4483362458)
 local TabDesync = Window:CreateTab("Desync", 4483362458)
 local TabConfig = Window:CreateTab("Configurações", 4483362458)
 
@@ -446,6 +446,47 @@ TabDesync:CreateToggle({
 
 TabDesync:CreateLabel("Usa apenas o comando nativo (seguro). O marcador rosa\nmostra onde seu personagem está congelado para os outros.", Color3.fromRGB(200, 200, 200))
 
+-- NOVA FUNÇÃO: Teste 16 Speed
+TabDesync:CreateSection("Velocidade")
+
+local testSpeedEnabled = false
+local testSpeedConn = nil
+
+local function enableTestSpeed()
+    local player = game.Players.LocalPlayer
+    testSpeedConn = game:GetService("RunService").Heartbeat:Connect(function()
+        if not testSpeedEnabled then return end
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = 16
+        end
+    end)
+end
+
+local function disableTestSpeed()
+    testSpeedEnabled = false
+    if testSpeedConn then
+        testSpeedConn:Disconnect()
+        testSpeedConn = nil
+    end
+end
+
+TabDesync:CreateToggle({
+    Name = "Teste 16 Speed",
+    CurrentValue = false,
+    Flag = "TestSpeedToggle",
+    Callback = function(Value)
+        testSpeedEnabled = Value
+        if Value then
+            enableTestSpeed()
+        else
+            disableTestSpeed()
+        end
+    end,
+})
+
+TabDesync:CreateLabel("Mantém sua velocidade fixa em 16 studs/s enquanto ativo.", Color3.fromRGB(200, 200, 200))
+
 -- ====================== ABA CONFIGURAÇÕES ======================
 TabConfig:CreateSection("Sistema")
 
@@ -509,6 +550,7 @@ TabConfig:CreateButton({
         if antiRagdollEnabled then disableAntiRagdoll() end
         if brainrotAlertEnabled then disableBrainrotAlert() end
         if desyncEnabled then disableDesync() end
+        if testSpeedEnabled then disableTestSpeed() end
         if autoExecuteEnabled then disableAutoExecute() end
         Rayfield:Destroy()
     end,
@@ -536,6 +578,10 @@ task.spawn(function()
     if Rayfield.Flags["EspDesyncToggle"] then
         espDesyncEnabled = true
         atualizarESP()
+    end
+    if Rayfield.Flags["TestSpeedToggle"] then
+        testSpeedEnabled = true
+        enableTestSpeed()
     end
     if Rayfield.Flags["AutoExecuteToggle"] then
         enableAutoExecute()
